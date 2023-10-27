@@ -1,8 +1,8 @@
 #Ignored filetypes
-
 *.exe
 #Ignored folders
 /exercises/
 /.vscode/
 /Slides/
 /helloWorld/
+/odbg110/
