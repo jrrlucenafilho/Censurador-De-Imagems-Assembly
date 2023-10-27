@@ -20,7 +20,7 @@ include \masm32\macros\macros.asm
     largura_str db 50 dup(0)
     altura_str db 50 dup(0)
 
-    ;Variáveis que guardarão os valorres numéricos
+    ;Variáveis que guardarão os valores numéricos
     coord_x DWORD 0
     coord_y DWORD 0
     largura DWORD 0
