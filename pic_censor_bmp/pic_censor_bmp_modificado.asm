@@ -21,7 +21,7 @@ include \masm32\macros\macros.asm
     altura_str db 50 dup(0)
     
 
-    ;Vari·veis que guardar„o os valores numÈricos
+    ;Vari√°veis que guardar√£o os valores num√©ricos
     coord_x DWORD 0
     coord_y DWORD 0
     largura DWORD 0
@@ -48,10 +48,10 @@ start:
     invoke GetStdHandle, STD_OUTPUT_HANDLE
     mov outputHandle, eax
 
-    ;handle para escrever no console de saÌda 
+    ;handle para escrever no console de sa√≠da 
     push std_output_handle
 
-    ;Handle È gravado em EAX
+    ;Handle √© gravado em EAX
     call GetStdHandle
     mov outputHandle, eax
     invoke WriteConsole, outputHandle, addr output, 50, addr write_count, NULL
@@ -69,17 +69,26 @@ start:
     ;Entrada da coord x (como str)
     invoke ReadConsole, inputHandle, addr coord_x_str, sizeof coord_x_str, addr console_count, NULL
 
+    ;Escrever coord x no arq
+    invoke WriteFile, outputHandle, addr coord_x, eax, addr console_count, NULL
+
     ;Escrever prompt da coord y
     invoke StdOut, addr prompt_coord_y
     
     ;Entrada da coord y (como str)
     invoke ReadConsole, inputHandle, addr coord_y_str, sizeof coord_y_str, addr console_count, NULL
 
+    ;Escrever coord y no arq
+    invoke WriteFile, outputHandle, addr coord_y, eax, addr console_count, NULL
+    
     ;Escrever prompt largura
     invoke StdOut, addr prompt_largura
 
     ;Entrada da largura (como str)
     invoke ReadConsole, inputHandle, addr largura_str, sizeof largura_str, addr console_count, NULL
+
+    ;Escrever largura_str no arq
+    invoke WriteFile, outputHandle, addr largura, eax, addr console_count, NULL
 
     ;Escrever prompt altura
     invoke StdOut, addr prompt_altura
@@ -87,7 +96,11 @@ start:
     ;Entrada da altura (como str)
     invoke ReadConsole, inputHandle, addr altura_str, sizeof altura_str, addr console_count, NULL
 
-;;;RemoÁ„o do '/n' em coord_x, coord_y, altura e largura;;;
+    ;Escrever altura_str no arq
+    invoke WriteFile, outputHandle, addr altura, eax, addr console_count, NULL
+
+
+;;;Remo√ß√£o do '/n' em coord_x, coord_y, altura e largura;;;
     ;Tirar CR da coord_x
     mov esi, offset coord_x_str ;Salva o ptr da string
 proximo_label_coord_x_str:
@@ -151,12 +164,12 @@ proximo_label_altura_str:
     xor esi, esi
     xor al, al
 
-;;;Conversıes de coord_x, coord_y, altura e largura para dword (4 bytes);;;
-    ;Limpar eax que vai armazenar os valores numÈricos
+;;;Convers√µes de coord_x, coord_y, altura e largura para dword (4 bytes);;;
+    ;Limpar eax que vai armazenar os valores num√©ricos
     xor eax, eax
 
-    ;Converte as strings em dwords (num ir· pra o eax)
-    ;e as armazena nas vari·veis
+    ;Converte as strings em dwords (num ir√° pra o eax)
+    ;e as armazena nas vari√°veis
     invoke atodw, addr coord_x_str  ;TODO: pode ser necessario esvaziar eax cada vez, mas acho que nao
     mov coord_x, eax
 
@@ -174,15 +187,15 @@ end start
 
 ;;;Entrada
 ;Prompt e entrada do nome do arquivo - 
-;Prompt de entrada de posiÁ„o x - 
-;Prompt de entrada de posiÁ„o y - 
+;Prompt de entrada de posi√ß√£o x - 
+;Prompt de entrada de posi√ß√£o y - 
 ;Prompt de largura -
 ;Prompt de altura -
 
 ;;Remover /n da str de numeros -
 ;;Converter posicoes x e y e largura e altura em dword -
 
-;;;ManipulaÁao de arquivo
+;;;Manipula√ßao de arquivo
 ;Pegar a str do nome de arquivo e abrir o arquivo com esse nome
-;;Censura do arquivo (funÁ„o(ender_array, coordX, largura_da_censura)
-;Escrever no arquivo de saÌda
+;;Censura do arquivo (fun√ß√£o(ender_array, coordX, largura_da_censura)
+;Escrever no arquivo de sa√≠da
