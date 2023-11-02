@@ -12,7 +12,20 @@ includelib \masm32\lib\msvcrt.lib
 includelib \masm32\lib\masm32.lib
 
 include \masm32\macros\macros.asm
+
 .data
+    inputHandle dd 0    ;Variavel para armazenar o handle de entrada
+    outputHandle dd 0   ;Variavel para armazenar o handle de saida
+    console_count dd 0  ;Variavel para armazenar caracteres lidos/escritos na console
+    tamanho_string dd 0     ;Variavel para armazenar tamanho de string terminada em 0
+
+    ;Prompt strings
+    prompt_nome_arq db "Digite o nome do arquivo: ", 0
+    prompt_coord_x db "Digite a coordenada x: ", 0
+    prompt_coord_y db "Digite a coordenada y: ", 0
+    prompt_largura db "Digite a largura da censura: ", 0
+    prompt_altura db "Digite a altura da censura: ", 0
+
     ;Strings a serem preenchidas
     nome_arquivo_str db 50 dup(0)
     coord_x_str db 50 dup(0)
@@ -23,24 +36,37 @@ include \masm32\macros\macros.asm
     ;Variáveis que guardarão os valores numéricos
     coord_x DWORD 0
     coord_y DWORD 0
-    largura DWORD 0
-    altura DWORD 0
+    largura_censura DWORD 0
+    altura_censura DWORD 0
 
-    ;Prompt strings
-    prompt_nome_arq db "Digite o nome do arquivo: ", 0
-    prompt_coord_x db "Digite a coordenada x: ", 0
-    prompt_coord_y db "Digite a coordenada y: ", 0
-    prompt_largura db "Digite a largura da censura: ", 0
-    prompt_altura db "Digite a altura da censura: ", 0
+    ;Handle do arq (guarda retorno do readFile)
+    input_file_handle DWORD 0
+    output_file_handle DWORD 0
 
-    inputHandle dd 0    ;Variavel para armazenar o handle de entrada
-    outputHandle dd 0   ;Variavel para armazenar o handle de saida
-    console_count dd 0  ;Variavel para armazenar caracteres lidos/escritos na console
-    tamanho_string dd 0     ;Variavel para armazenar tamanho de string terminada em 0
+    ;Array que guardará uma linha da imagem (tam max p/ imagens 4k)
+    ;3 bytes/pixel multiplicados por 2160 pixels
+    img_width_pixel_buffer db 6480 dup(0)
+
+    ;;Guardará os primeiros 18 bytes do header do arq de input
+    ;;E os últimos 32 bytes do header
+    header_section1 db 18 dup(0)
+    header_section2 db 28 dup(0)
+
+    ;;Guardar largura e altura do arq de input
+    arquivo_largura db 4 dup(0)
+    arquivo_altura db 4 dup(0)
+
+    ;;Contador de quantos bytes efetivamente foram lidos em cada read (basically an EOF flag aq)
+    effectively_read_bytes db 4 dup(0)
+    effectively_written_bytes db 4 dup(0)
+
+    ;;Nome do arq de saída
+    output_file_name db "censura.bmp", 0
 
 .code
 start:
 ;;;Prompts de entrada;;;
+
     ;Setup dos Handles
     invoke GetStdHandle, STD_INPUT_HANDLE
     mov inputHandle, eax
@@ -78,6 +104,22 @@ start:
     invoke ReadConsole, inputHandle, addr altura_str, sizeof altura_str, addr console_count, NULL
 
 ;;;Remoção do '/n' em coord_x, coord_y, altura e largura;;;
+
+    ;Tirar CR da str nome_do_arquivo
+    mov esi, offset nome_arquivo_str ;Salva o ptr da string
+proximo_label_nome_arquivo_str:
+    mov al, [esi]   ;move char da iter atual pra al (8-bit)
+    inc esi ;move ptr + 1 (prox char)
+    cmp al, 13  ;Verifica se al esta com o CR
+    jne proximo_label_nome_arquivo_str   ;Ele so passa daqui se al estiver guardando CR
+    dec esi ;ptr pro char anterior
+    xor al, al ;zera al
+    mov [esi], al   ;Troca o cr por 0
+
+    ;Zera esi e al pra usar de novo
+    xor esi, esi
+    xor al, al
+
     ;Tirar CR da coord_x
     mov esi, offset coord_x_str ;Salva o ptr da string
 proximo_label_coord_x_str:
@@ -142,22 +184,56 @@ proximo_label_altura_str:
     xor al, al
 
 ;;;Conversões de coord_x, coord_y, altura e largura para dword (4 bytes);;;
+
     ;Limpar eax que vai armazenar os valores numéricos
     xor eax, eax
 
-    ;Converte as strings em dwords (num irá pra o eax)
+    ;Converte as strings em dwords (por meio de eax)
     ;e as armazena nas variáveis
-    invoke atodw, addr coord_x_str  ;TODO: pode ser necessario esvaziar eax cada vez, mas acho que nao
+    invoke atodw, addr coord_x_str
     mov coord_x, eax
 
     invoke atodw, addr coord_y_str
     mov coord_y, eax
 
     invoke atodw, addr largura_str
-    mov largura, eax
+    mov largura_censura, eax
 
     invoke atodw, addr altura_str
-    mov altura, eax
+    mov altura_censura, eax
+
+;;;Manipulando arquivos;;;
+
+;;Leitura do arquivo source
+    ;Abrindo o arquivo source (bmp file)
+    invoke CreateFile, addr nome_arquivo_str, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL
+    mov input_file_handle, eax ;armazena o handle
+
+    ;Ler 18 (14 + 4) bytes do header
+    invoke ReadFile, input_file_handle, addr header_section1, 18, addr effectively_read_bytes, NULL
+
+    ;;Ler largura e altura da imagem e as salva em suas vars
+    invoke ReadFile, input_file_handle, addr arquivo_largura, 4, addr effectively_read_bytes, NULL
+    invoke ReadFile, input_file_handle, addr arquivo_altura, 4, addr effectively_read_bytes, NULL
+
+    ;Ler os últimos 32 bytes do header
+    invoke ReadFile, input_file_handle, addr header_section2, 28, addr effectively_read_bytes, NULL
+
+;;Escrita para o arquivo de censor
+    ;Criação do arquivo de output
+    invoke CreateFile, addr output_file_name, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL
+    mov output_file_handle, eax
+
+    ;;Escrita do header do arquivo (52 bytes total)
+    ;Escreve primeiros 18 bytes
+    invoke WriteFile, output_file_handle, addr header_section1, 18, addr effectively_written_bytes, NULL
+
+    ;Escreve largura e altura da imagem
+    invoke WriteFile, output_file_handle, addr arquivo_largura, 4, addr effectively_written_bytes, NULL
+    invoke WriteFile, output_file_handle, addr arquivo_altura, 4, addr effectively_written_bytes, NULL
+
+    ;Escreve últimos 32 bytes do header
+    invoke WriteFile, output_file_handle, addr header_section2, 28, addr effectively_written_bytes, NULL
 
     invoke ExitProcess, 0
 end start
@@ -173,6 +249,7 @@ end start
 ;;Converter posicoes x e y e largura e altura em dword -
 
 ;;;Manipulaçao de arquivo
-;Pegar a str do nome de arquivo e abrir o arquivo com esse nome
-;;Censura do arquivo (função(ender_array, coordX, largura_da_censura)
-;Escrever no arquivo de saída
+;;Abrir arquivo de input e ouput -
+;;Ler header do arq. de input e escrever no arq. de output -
+;;Copiar pixels da imagem em si
+;;Add censura do arquivo (função(addr_array, coordX, largura_da_censura)
