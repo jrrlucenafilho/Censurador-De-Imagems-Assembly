@@ -232,7 +232,7 @@ proximo_label_altura_str:
     invoke WriteFile, output_file_handle, addr arquivo_largura, 4, addr effectively_written_bytes, NULL
     invoke WriteFile, output_file_handle, addr arquivo_altura, 4, addr effectively_written_bytes, NULL
 
-    ;Escreve últimos 32 bytes do header
+    ;Escreve últimos 328 bytes do header
     invoke WriteFile, output_file_handle, addr header_section2, 28, addr effectively_written_bytes, NULL
 
     invoke ExitProcess, 0
