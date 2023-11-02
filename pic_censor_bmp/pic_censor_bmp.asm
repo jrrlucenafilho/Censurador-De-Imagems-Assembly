@@ -43,25 +43,31 @@ include \masm32\macros\macros.asm
     input_file_handle DWORD 0
     output_file_handle DWORD 0
 
-    ;Array que guardará uma linha da imagem (tam max p/ imagens 4k)
-    ;3 bytes/pixel multiplicados por 2160 pixels
-    img_width_pixel_buffer db 6480 dup(0)
-
-    ;;Guardará os primeiros 18 bytes do header do arq de input
-    ;;E os últimos 32 bytes do header
+    ;Guardará os primeiros 18 bytes do header do arq de input
+    ;E os últimos 32 bytes do header
     header_section1 db 18 dup(0)
     header_section2 db 28 dup(0)
 
-    ;;Guardar largura e altura do arq de input
-    arquivo_largura db 4 dup(0)
-    arquivo_altura db 4 dup(0)
+    ;Guardar largura e altura do arq de input
+    arquivo_largura DWORD 0
+    arquivo_altura DWORD 0
 
-    ;;Contador de quantos bytes efetivamente foram lidos em cada read (basically an EOF flag aq)
-    effectively_read_bytes db 4 dup(0)
-    effectively_written_bytes db 4 dup(0)
+    ;Guarda o número de bytes de ma linha
+    img_line_byte_num DWORD 0
 
-    ;;Nome do arq de saída
+    ;Contador de quantos bytes efetivamente foram lidos em cada read (basically an EOF flag aq)
+    effectively_read_bytes DWORD 0
+    effectively_written_bytes DWORD 0
+
+    ;Nome do arq de saída
     output_file_name db "censura.bmp", 0
+
+    ;Array que guardará uma linha da imagem (tam max p/ imagens 4k)
+    ;3 bytes/pixel multiplicados por 2160 pixels
+    img_line_bytes_buffer db 6480 dup(0)
+
+    ;3-byte pixel Array p apontar pra cada byte de qualquer pixel
+    single_pixel_array db 3 dup(0)
 
 .code
 start:
@@ -200,7 +206,7 @@ proximo_label_altura_str:
 
 ;;;Manipulando arquivos;;;
 
-;;Leitura do arquivo source
+;;Leitura do header do arquivo source
     ;Abrindo o arquivo source (bmp file)
     invoke CreateFile, addr nome_arquivo_str, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL
     mov input_file_handle, eax ;armazena o handle
@@ -215,7 +221,7 @@ proximo_label_altura_str:
     ;Ler os últimos 28 bytes do header
     invoke ReadFile, input_file_handle, addr header_section2, 28, addr effectively_read_bytes, NULL
 
-;;Escrita para o arquivo de censor
+;;Escrita para o header do arquivo de censor
     ;Criação do arquivo de output
     invoke CreateFile, addr output_file_name, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL
     mov output_file_handle, eax
@@ -230,6 +236,29 @@ proximo_label_altura_str:
 
     ;Escreve últimos 28 bytes do header
     invoke WriteFile, output_file_handle, addr header_section2, 28, addr effectively_written_bytes, NULL
+
+;;Lendo os bytes dos pixels da img de entrada e escrevendo na de saída
+
+    ;1. Lê e salva no buffer
+    ;2. Escreve a linha na img de saída
+    ;3. se não chegar em EOF, volta pro 1.
+
+copy_img_line_label:
+    ;Multiplica a largura por 3 e guarda em img_line_byte_num
+    mov ecx, arquivo_largura
+    imul ecx, 3
+    mov img_line_byte_num, ecx
+
+    ;Lê bytes da img de input até a (largura da imagem * 3) e salva no buffer de linha
+    invoke ReadFile, input_file_handle, addr img_line_bytes_buffer, img_line_byte_num, addr effectively_read_bytes, NULL
+
+    ;Escreve na img de output a linha que está no buffer até a (largura da imagem * 3)
+    invoke WriteFile, output_file_handle, addr img_line_bytes_buffer, img_line_byte_num, addr effectively_written_bytes, NULL
+
+    ;Checa se chegou no EOF usando effectively_read_bytes != 0?
+    ;Se não, volta pro início do label. Se sim, continua o programa
+    cmp effectively_read_bytes, 0
+    jne copy_img_line_label
 
     invoke ExitProcess, 0
 end start
