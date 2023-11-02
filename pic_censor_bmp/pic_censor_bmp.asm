@@ -111,9 +111,9 @@ proximo_label_nome_arquivo_str:
     mov al, [esi]   ;move char da iter atual pra al (8-bit)
     inc esi ;move ptr + 1 (prox char)
     cmp al, 13  ;Verifica se al esta com o CR
-    jne proximo_label_nome_arquivo_str   ;Ele so passa daqui se al estiver guardando CR
+    jne proximo_label_nome_arquivo_str  ;Ele so passa daqui se al estiver guardando CR
     dec esi ;ptr pro char anterior
-    xor al, al ;zera al
+    xor al, al  ;zera al
     mov [esi], al   ;Troca o cr por 0
 
     ;Zera esi e al pra usar de novo
@@ -123,15 +123,14 @@ proximo_label_nome_arquivo_str:
     ;Tirar CR da coord_x
     mov esi, offset coord_x_str ;Salva o ptr da string
 proximo_label_coord_x_str:
-    mov al, [esi]   ;move char da iter atual pra al (8-bit)
-    inc esi ;move ptr + 1 (prox char)
-    cmp al, 13  ;Verifica se al esta com o CR
-    jne proximo_label_coord_x_str   ;Ele so passa daqui se al estiver guardando CR
-    dec esi ;ptr pro char anterior
-    xor al, al ;zera al
-    mov [esi], al   ;Troca o cr por 0
+    mov al, [esi]
+    inc esi
+    cmp al, 13
+    jne proximo_label_coord_x_str
+    dec esi
+    xor al, al
+    mov [esi], al
 
-    ;Zera esi e al pra usar de novo
     xor esi, esi
     xor al, al
 
@@ -139,15 +138,14 @@ proximo_label_coord_x_str:
     mov esi, offset coord_y_str
 
 proximo_label_coord_y_str:
-    mov al, [esi]   ;move char da iter atual pra al (8-bit)
-    inc esi ;move ptr + 1 (prox char)
-    cmp al, 13  ;Verifica se al esta com o CR
-    jne proximo_label_coord_y_str   ;Ele so passa daqui se al estiver guardando CR
-    dec esi ;ptr pro char anterior
-    xor al, al ;zera al
-    mov [esi], al   ;Troca o cr por 0
+    mov al, [esi]
+    inc esi
+    cmp al, 13
+    jne proximo_label_coord_y_str
+    dec esi
+    xor al, al
+    mov [esi], al
 
-    ;Zera esi e al pra usar de novo
     xor esi, esi
     xor al, al
 
@@ -155,15 +153,14 @@ proximo_label_coord_y_str:
     mov esi, offset largura_str
 
 proximo_label_largura_str:
-    mov al, [esi]   ;move char da iter atual pra al (8-bit)
-    inc esi ;move ptr + 1 (prox char)
-    cmp al, 13  ;Verifica se al esta com o CR
-    jne proximo_label_largura_str   ;Ele so passa daqui se al estiver guardando CR
-    dec esi ;ptr pro char anterior
-    xor al, al ;zera al
-    mov [esi], al   ;Troca o cr por 0
+    mov al, [esi]
+    inc esi
+    cmp al, 13
+    jne proximo_label_largura_str
+    dec esi
+    xor al, al
+    mov [esi], al
 
-    ;Zera esi e al pra usar de novo
     xor esi, esi
     xor al, al
 
@@ -171,15 +168,14 @@ proximo_label_largura_str:
     mov esi, offset altura_str
 
 proximo_label_altura_str:
-    mov al, [esi]   ;move char da iter atual pra al (8-bit)
-    inc esi ;move ptr + 1 (prox char)
-    cmp al, 13  ;Verifica se al esta com o CR
-    jne proximo_label_altura_str   ;Ele so passa daqui se al estiver guardando CR
-    dec esi ;ptr pro char anterior
-    xor al, al ;zera al
-    mov [esi], al   ;Troca o cr por 0
+    mov al, [esi]
+    inc esi
+    cmp al, 13
+    jne proximo_label_altura_str
+    dec esi
+    xor al, al
+    mov [esi], al
 
-    ;Zera esi e al pra usar de novo
     xor esi, esi
     xor al, al
 
