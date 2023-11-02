@@ -243,12 +243,12 @@ proximo_label_altura_str:
     ;2. Escreve a linha na img de saída
     ;3. se não chegar em EOF, volta pro 1.
 
-copy_img_line_label:
     ;Multiplica a largura por 3 e guarda em img_line_byte_num
     mov ecx, arquivo_largura
     imul ecx, 3
     mov img_line_byte_num, ecx
 
+copy_img_line_label:
     ;Lê bytes da img de input até a (largura da imagem * 3) e salva no buffer de linha
     invoke ReadFile, input_file_handle, addr img_line_bytes_buffer, img_line_byte_num, addr effectively_read_bytes, NULL
 
