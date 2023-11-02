@@ -1,7 +1,9 @@
 #Ignored filetypes
 *.exe
+HexEd.it - Browser-based Online and Offline Hex Editing.url
 #Ignored folders
 /exercises/
+/docs/
 /.vscode/
 /Slides/
 /helloWorld/
