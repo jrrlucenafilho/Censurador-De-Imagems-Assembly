@@ -216,7 +216,7 @@ proximo_label_altura_str:
     invoke ReadFile, input_file_handle, addr arquivo_largura, 4, addr effectively_read_bytes, NULL
     invoke ReadFile, input_file_handle, addr arquivo_altura, 4, addr effectively_read_bytes, NULL
 
-    ;Ler os últimos 32 bytes do header
+    ;Ler os últimos 28 bytes do header
     invoke ReadFile, input_file_handle, addr header_section2, 28, addr effectively_read_bytes, NULL
 
 ;;Escrita para o arquivo de censor
