@@ -52,22 +52,22 @@ include \masm32\macros\macros.asm
     arquivo_largura DWORD 0
     arquivo_altura DWORD 0
 
-    ;Guarda o número de bytes de ma linha
+    ;Guarda o número de bytes que uma linha possui (guarda largura_imagem * 3)
     img_line_byte_num DWORD 0
 
-    ;Contador de quantos bytes efetivamente foram lidos em cada read (basically an EOF flag aq)
+    ;Contador de quantos bytes efetivamente foram lidos e escritos (basically an EOF flag aq)
     effectively_read_bytes DWORD 0
     effectively_written_bytes DWORD 0
 
     ;Nome do arq de saída
     output_file_name db "censura.bmp", 0
 
-    ;Array que guardará uma linha da imagem (tam max p/ imagens 4k)
+    ;Array que guardará os bytes de uma linha da imagem (tam max p/ imagens 4k)
     ;3 bytes/pixel multiplicados por 2160 pixels
     img_line_bytes_buffer db 6480 dup(0)
 
     ;3-byte pixel Array p apontar pra cada byte de qualquer pixel
-    single_pixel_array db 3 dup(0)
+    pixel_rgb_arr_ptr db 3 dup(0)
 
 .code
 start:
@@ -114,13 +114,13 @@ start:
     ;Tirar CR da str nome_do_arquivo
     mov esi, offset nome_arquivo_str ;Salva o ptr da string
 proximo_label_nome_arquivo_str:
-    mov al, [esi]   ;move char da iter atual pra al (8-bit)
-    inc esi ;move ptr + 1 (prox char)
-    cmp al, 13  ;Verifica se al esta com o CR
+    mov al, [esi]   ;Move char da iter atual pra al (8-bit)
+    inc esi ;Move ptr + 1 (prox char)
+    cmp al, 13  ;Verifica se al tá com o CR
     jne proximo_label_nome_arquivo_str  ;Ele so passa daqui se al estiver guardando CR
-    dec esi ;ptr pro char anterior
-    xor al, al  ;zera al
-    mov [esi], al   ;Troca o cr por 0
+    dec esi ;Aponta o ptr pro char anterior
+    xor al, al  ;Zera al
+    mov [esi], al   ;Troca o CR por 0
 
     ;Zera esi e al pra usar de novo
     xor esi, esi
@@ -142,7 +142,6 @@ proximo_label_coord_x_str:
 
    ;Tirar CR da coord_y
     mov esi, offset coord_y_str
-
 proximo_label_coord_y_str:
     mov al, [esi]
     inc esi
@@ -157,7 +156,6 @@ proximo_label_coord_y_str:
 
     ;Tirar CR da largura
     mov esi, offset largura_str
-
 proximo_label_largura_str:
     mov al, [esi]
     inc esi
@@ -172,7 +170,6 @@ proximo_label_largura_str:
 
     ;Tirar CR da altura
     mov esi, offset altura_str
-
 proximo_label_altura_str:
     mov al, [esi]
     inc esi
@@ -260,8 +257,27 @@ copy_img_line_label:
     cmp effectively_read_bytes, 0
     jne copy_img_line_label
 
+    ;Close both file handles
+    invoke CloseHandle, input_file_handle
+    invoke CloseHandle, output_file_handle
+
     invoke ExitProcess, 0
 end start
+
+;;Censoring-line-buffer function
+;;CensorLineBuffer(img_line_bytes_buffer, coord_x, largura_censura)
+CensorLineBuffer:
+    ;Prologue
+    push ebp
+    mov ebp, esp
+    sub esp, 8
+
+
+
+    ;Epilogue
+    mov esp, ebp
+    pop ebp
+    ret 4
 
 ;;;Entrada
 ;Prompt e entrada do nome do arquivo - 
@@ -276,5 +292,5 @@ end start
 ;;;Manipulaçao de arquivo
 ;;Abrir arquivo de input e ouput -
 ;;Ler header do arq. de input e escrever no arq. de output -
-;;Copiar pixels da imagem em si
+;;Copiar pixels da imagem em si -
 ;;Add censura do arquivo (função(addr_array, coordX, largura_da_censura)
