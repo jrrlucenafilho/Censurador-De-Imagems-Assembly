@@ -46,11 +46,10 @@ include \masm32\macros\macros.asm
     ;Guardará os primeiros 18 bytes do header do arq de input
     ;E os últimos 32 bytes do header
     header_section1 db 18 dup(0)
-    header_section2 db 28 dup(0)
+    header_section2 db 32 dup(0)
 
-    ;Guardar largura e altura do arq de input
+    ;Guardar largura do arq de input
     arquivo_largura DWORD 0
-    arquivo_altura DWORD 0
 
     ;Guarda o número de bytes que uma linha possui (guarda largura_imagem * 3)
     img_line_byte_num DWORD 0
@@ -211,12 +210,11 @@ proximo_label_altura_str:
     ;Ler 18 (14 + 4) bytes do header
     invoke ReadFile, input_file_handle, addr header_section1, 18, addr effectively_read_bytes, NULL
 
-    ;;Ler largura e altura da imagem e as salva em suas vars
+    ;;Ler largura da imagem e as salva em suas vars
     invoke ReadFile, input_file_handle, addr arquivo_largura, 4, addr effectively_read_bytes, NULL
-    invoke ReadFile, input_file_handle, addr arquivo_altura, 4, addr effectively_read_bytes, NULL
 
     ;Ler os últimos 28 bytes do header
-    invoke ReadFile, input_file_handle, addr header_section2, 28, addr effectively_read_bytes, NULL
+    invoke ReadFile, input_file_handle, addr header_section2, 32, addr effectively_read_bytes, NULL
 
 ;;Escrita para o header do arquivo de censor
     ;Criação do arquivo de output
@@ -227,12 +225,11 @@ proximo_label_altura_str:
     ;Escreve primeiros 18 bytes
     invoke WriteFile, output_file_handle, addr header_section1, 18, addr effectively_written_bytes, NULL
 
-    ;Escreve largura e altura da imagem
+    ;Escreve largura da imagem
     invoke WriteFile, output_file_handle, addr arquivo_largura, 4, addr effectively_written_bytes, NULL
-    invoke WriteFile, output_file_handle, addr arquivo_altura, 4, addr effectively_written_bytes, NULL
 
-    ;Escreve últimos 28 bytes do header
-    invoke WriteFile, output_file_handle, addr header_section2, 28, addr effectively_written_bytes, NULL
+    ;Escreve últimos 32 bytes do header
+    invoke WriteFile, output_file_handle, addr header_section2, 32, addr effectively_written_bytes, NULL
 
 ;;Lendo os bytes dos pixels da img de entrada e escrevendo na de saída
 
