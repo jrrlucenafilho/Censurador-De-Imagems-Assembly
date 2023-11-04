@@ -1,8 +1,10 @@
 #Ignored filetypes
 *.exe
 HexEd.it - Browser-based Online and Offline Hex Editing.url
+Pix Spy.url
 #Ignored folders
 /docs/
 /.vscode/
 /slides/
 */odbg110/
+/hex_check/
