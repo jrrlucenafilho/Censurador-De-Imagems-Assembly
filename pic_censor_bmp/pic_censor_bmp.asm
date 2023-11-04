@@ -24,7 +24,7 @@ include \masm32\macros\macros.asm
     prompt_coord_y db "Digite a coordenada y: ", 0
     prompt_largura db "Digite a largura da censura: ", 0
     prompt_altura db "Digite a altura da censura: ", 0
-    prompt_nome_arq_saida db "Digite um nome para o arquivo de saída: ", 0
+    prompt_nome_arq_saida db "Digite um nome para o arquivo de saida: ", 0
 
     ;Strings a serem preenchidas
     nome_arquivo_entrada_str db 50 dup(0)
