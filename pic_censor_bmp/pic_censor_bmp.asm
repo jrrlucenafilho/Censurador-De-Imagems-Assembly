@@ -59,7 +59,7 @@ include \masm32\macros\macros.asm
     effectively_written_bytes DWORD 0
 
     ;Nome do arq de saída
-    output_file_name db "censura.bmp", 0
+    output_file_name db "imagem_censurada_output.bmp", 0
 
     ;Array que guardará os bytes de uma linha da imagem (tam max p/ imagens 4k)
     ;3 bytes/pixel multiplicados por 2160 pixels
@@ -91,7 +91,7 @@ CensorLineBuffer:
     ;DWORD PTR [ebp-4] = buffer_painted_pixels_counter
     ;DWORD PTR [ebp-8] = eax_initial_value   ;;These "reg_initial_value" will save the values of each reg before they were used in this function
     ;DWORD PTR [ebp-12] = ebx_initial_value  ;;Since this is a windows program, and so should follow the Callee Clean-up convention
-    ;DWORD PTR [ebp-16] = ecx_initial_value  ;;Which means it just needs to preserve used regs
+    ;DWORD PTR [ebp-16] = ecx_initial_value  ;;Which means it just needs to preserve used regs' previous values
     ;DWORD PTR [ebp-20] = edx_initial_value
 
     ;Salva o valor inicial de eax na pilha
@@ -114,20 +114,20 @@ CensorLineBuffer:
     ;;Iterar pela pelo buffer
     ;if(pixel_atual >= coord_x && pixel_atual <= (coord_x + largura)){ pintar de preto }
     ;move ptr to x_coord in line buffer, using lea (load effective address)
-    ;move x_coord in the line buffer to ebx (to be used as an index)
+    ;move coord_x in the line buffer to ebx (to be used as an index)
     ;But first, I need to multiply x_coord by 3, since x_coord is meant as in pixels
     ;And i need to convert it to bytes
     
-    ;So I just load it to ebx
+    ;So I just load coord_x to ebx
     mov ebx, [ebp+12]
 
     ;Then multiply ebx by 3 (1 pixel = 3 bytes)
     imul ebx, 3
 
-    ;Calculate the address of the desired byte in line buffer
+    ;Calculate the address of the desired first-to-be-censored byte in line buffer
     lea eax, img_line_bytes_buffer[ebx] 
     
-    ;Now eax points to x_coord's pixel first byte, just need to paint it black until (coord_x + largura)
+    ;Now eax points to coord_x's pixel first byte, just need to paint it black until (coord_x + largura)
 paint_it_black_label:
     ;First, set the first 3 bytes to 0 (sets the first pixel in line buffer to black)
     mov BYTE PTR [eax], 0    ;Set blue byte to 0
@@ -141,11 +141,11 @@ paint_it_black_label:
     inc DWORD PTR [ebp-4]
 
     ;;Setting up the stopping condition
-    ;;Compares if buffer_painted_pixels_counter == (largura-1)
+    ;;Compares if buffer_painted_pixels_counter == (largura)
     ;First, loads buffer_painted_pixels_counter to edx
     mov edx, DWORD PTR [ebp-4]
 
-    ;Compares if buffer_painted_pixels_counter (in edx) == (largura-1) (in ecx)
+    ;Compares if buffer_painted_pixels_counter (in edx) == (largura) (in ecx)
     cmp edx, ecx
 
     ;If they're different, it means it hasn't painted the whole section asked in line buffer to black
@@ -323,8 +323,8 @@ proximo_label_altura_str:
     invoke WriteFile, output_file_handle, addr header_section2, 32, addr effectively_written_bytes, NULL
 
 ;;Lendo os bytes dos pixels da img de entrada e escrevendo na de saída
-    ;1. Lê próx linha e salva no buffer
-    ;2. Escreve a linha do buffer na img de saída
+    ;1. Lê próx linha e a salva no buffer
+    ;2. Escreve a linha do buffer na img de saída (E censura se for uma das linha escolhidas pra isso)
     ;3. se não chegar em EOF, volta pro 1.
 
     ;Multiplica a largura por 3 e guarda em img_line_byte_num
@@ -337,7 +337,33 @@ copy_img_line_label:
     invoke ReadFile, input_file_handle, addr img_line_bytes_buffer, img_line_byte_num, addr effectively_read_bytes, NULL
 
 ;;CensorLineBuffer function call here
-    ;Should only call this function if y_pos_counter is between y_pos and y_pos + altura
+    ;;Should only call this function if y_pos_counter is between y_pos and y_pos + altura
+    ;;if(y_pos_counter >= coord_y && y_pos_counter <= (coord_y + (altura-1)){ censurar essa linha }
+    ;First, save the decreased-by-one alue of height on eax
+    mov eax, altura_censura
+
+    ;Decrease it by one (censor should got from coord_y up to height-1)
+    dec eax
+
+    ;Checks if current line (y position) should not be censored, by comparing it to altura_censura-1 (in eax)
+    mov ebx, coord_y
+    cmp y_pos_counter, ebx
+
+    ;And skips calling the censor-line-function if y_pos_counter is lower than coord_y
+    jl line_should_skip_censoring_label
+
+    ;Also skips calling the censor-line-function if y_pos_counter is higher than (coord_y + (altura_censura-1)) (in ebx)
+    ;First loads (altura_censura-1) to ebx (from eax)
+    mov ebx, eax
+
+    ;Then adds coord_y's value to it, ebx now holds coord_y + (altura_censura-1)
+    add ebx, coord_y
+
+    ;Time to compare
+    cmp y_pos_counter, ebx
+
+    ;Skips censoring current line buffer in case y_pos_counter is higher than (coord_y + (altura_censura-1))
+    jg line_should_skip_censoring_label
 
     ;Pushing params and calling function
     push largura_censura
@@ -345,8 +371,12 @@ copy_img_line_label:
     push offset img_line_bytes_buffer
     call CensorLineBuffer
 
+line_should_skip_censoring_label:
     ;Escreve na img de output a linha que está no buffer até a (largura da imagem * 3)
     invoke WriteFile, output_file_handle, addr img_line_bytes_buffer, img_line_byte_num, addr effectively_written_bytes, NULL
+
+    ;+1 to y_pos_counter
+    inc y_pos_counter
 
     ;Checa se chegou no EOF usando effectively_read_bytes != 0?
     ;Se não, volta pro início do label. Se sim, continua o programa
