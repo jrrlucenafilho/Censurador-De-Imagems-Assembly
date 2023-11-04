@@ -20,7 +20,7 @@ include \masm32\macros\macros.asm
     tamanho_string dd 0     ;Variavel para armazenar tamanho de string terminada em 0
 
     ;Prompt strings
-    prompt_nome_arq db "Digite o nome do arquivo: ", 0
+    prompt_nome_arq db "Digite o nome do arquivo de entrada: ", 0
     prompt_coord_x db "Digite a coordenada x: ", 0
     prompt_coord_y db "Digite a coordenada y: ", 0
     prompt_largura db "Digite a largura da censura: ", 0
@@ -275,9 +275,6 @@ proximo_label_altura_str:
     xor al, al
 
 ;;Conversões de coord_x, coord_y e largura para dword (4 bytes)
-    ;Limpar eax que vai armazenar os valores numéricos
-    xor eax, eax
-
     ;Converte as strings em dwords (por meio de eax) e as armazena nas variáveis
     invoke atodw, addr coord_x_str
     mov coord_x, eax
@@ -338,8 +335,8 @@ copy_img_line_label:
 
 ;;CensorLineBuffer function call here
     ;;Should only call this function if y_pos_counter is between y_pos and y_pos + altura
-    ;;if(y_pos_counter >= coord_y && y_pos_counter <= (coord_y + (altura-1)){ censurar essa linha }
-    ;First, save the decreased-by-one alue of height on eax
+    ;;if(y_pos_counter < coord_y || y_pos_counter > (coord_y + (altura-1)){ não censurar essa linha }
+    ;First, save the decreased-by-one value of height on eax
     mov eax, altura_censura
 
     ;Decrease it by one (censor should got from coord_y up to height-1)
@@ -389,19 +386,3 @@ line_should_skip_censoring_label:
 
     invoke ExitProcess, 0
 end start
-
-;;;Entrada
-;Prompt e entrada do nome do arquivo - 
-;Prompt de entrada de posição x - 
-;Prompt de entrada de posição y - 
-;Prompt de largura -
-;Prompt de altura -
-
-;Remover /n da str de numeros -
-;Converter posicoes x e y e largura e altura em dword -
-
-;;;Manipulaçao de arquivo
-;Abrir arquivo de input e ouput -
-;Ler header do arq. de input e escrever no arq. de output -
-;Copiar pixels da imagem em si -
-;Add censura do arquivo (função(addr_array, coordX, largura_da_censura
