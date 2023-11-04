@@ -81,16 +81,16 @@ CensorLineBuffer:
 
 ;;Estrutura da Pilha durante essa função
     ;;Parameters:
-    ;DWORD PTR [ebp+8] = offset img_line_bytes_buffer
-    ;DWORD PTR [ebp+12] = coord_x
-    ;DWORD PTR [ebp+16] = largura_censura
+    ;[ebp+8] = offset img_line_bytes_buffer
+    ;[ebp+12] = coord_x
+    ;[ebp+16] = largura_censura
 
     ;Vars locais:
-    ;DWORD PTR [ebp-4] = buffer_painted_pixels_counter
-    ;DWORD PTR [ebp-8] = eax_initial_value   ;;These "reg_initial_value" will save the values of each reg before they were used in this function
-    ;DWORD PTR [ebp-12] = ebx_initial_value  ;;Since this is a windows program, and so should follow the Callee Clean-up convention
-    ;DWORD PTR [ebp-16] = ecx_initial_value  ;;Which means it just needs to preserve used regs' previous values
-    ;DWORD PTR [ebp-20] = edx_initial_value
+    ;[ebp-4] = buffer_painted_pixels_counter
+    ;[ebp-8] = eax_initial_value   ;;These "reg_initial_value" will save the values of each reg before they were used in this function
+    ;[ebp-12] = ebx_initial_value  ;;Since this is a windows program, and so should follow the Callee Clean-up convention
+    ;[ebp-16] = ecx_initial_value  ;;Which means it just needs to preserve used regs' previous values
+    ;[ebp-20] = edx_initial_value
 
     ;Salva o valor inicial de eax na pilha
     ;(Deixa um "buraco" na pilha pois tenho que usar o eax para salvar buffer_painted_pixels_counter como a primeira var local)
@@ -172,11 +172,11 @@ RemoveCarriageReturn:
 
 ;;Estrutura da Pilha durante essa função
     ;;Parameters:
-    ;DWORD PTR [ebp+8] = offset to_be_cleaned_str
+    ;[ebp+8] = offset to_be_cleaned_str
 
     ;;Local vars:
-    ;DWORD PTR [ebp-4] = esi_initial_value  ;;Preserving previous reg values in order to follow the Callee Clean-up convention
-    ;DWORD PTR [ebp-8] = eax_initial_value (for al)
+    ;[ebp-4] = esi_initial_value  ;;Preserving previous reg values in order to follow the Callee Clean-up convention
+    ;[ebp-8] = eax_initial_value (for al)
 
     ;Storing esi's and eax's previous values
     push esi
