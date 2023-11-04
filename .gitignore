@@ -1,7 +1,6 @@
 #Ignored filetypes
 *.exe
-HexEd.it - Browser-based Online and Offline Hex Editing.url
-Pix Spy.url
+*.url
 #Ignored folders
 /docs/
 /.vscode/
