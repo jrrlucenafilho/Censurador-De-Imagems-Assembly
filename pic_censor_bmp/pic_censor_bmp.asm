@@ -175,7 +175,7 @@ RemoveCarriageReturn:
     ;DWORD PTR [ebp+8] = offset to_be_cleaned_str
 
     ;;Local vars:
-    ;DWORD PTR [ebp-4] = esi_initial_value  ;;Preserving previosu reg values in order to follow the Callee Clean-up convention
+    ;DWORD PTR [ebp-4] = esi_initial_value  ;;Preserving previous reg values in order to follow the Callee Clean-up convention
     ;DWORD PTR [ebp-8] = eax_initial_value (for al)
 
     ;Storing esi's and eax's previous values
