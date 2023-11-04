@@ -164,6 +164,48 @@ paint_it_black_label:
     pop ebp
     ret 12  ;Desempilha os 3 params (4 bytes * 3 params = 12 bytes)
 
+;;RemoveCarriageReturn(addr string)
+;Tira CR da str recebida como param
+RemoveCarriageReturn:
+    ;Prologue
+    push ebp
+    mov ebp, esp
+    sub esp, 8
+
+;;Estrutura da Pilha durante essa função
+    ;;Parameters:
+    ;DWORD PTR [ebp+8] = offset to_be_cleaned_str
+
+    ;;Local vars:
+    ;DWORD PTR [ebp-4] = esi_initial_value
+    ;DWORD PTR [ebp-8] = eax_initial_value (for al)
+
+    ;Storing esi's and eax's previous values
+    push esi
+    push eax
+
+    mov esi, DWORD PTR [ebp+8] ;Salva o ptr da string
+proximo_to_be_cleaned_str_label:
+    mov al, [esi]   ;Move char da iter atual pra al (8-bit)
+    inc esi ;Move ptr + 1 (prox char)
+    cmp al, 13  ;Verifica se al tá com o CR
+    jne proximo_to_be_cleaned_str_label  ;Ele so passa daqui se al estiver guardando CR
+    dec esi ;Aponta o ptr pro char anterior
+    xor al, al  ;Zera al
+    mov [esi], al   ;Troca o CR por 0
+
+    ;Zera esi e al pra usar de novo
+    xor esi, esi
+    xor al, al    
+
+    ;Epilogue
+    pop eax
+    pop esi
+
+    mov esp, ebp
+    pop ebp
+    ret 8
+
 start:
 ;;Prompts de entrada
     ;Setup dos Handles
@@ -202,77 +244,26 @@ start:
     ;Entrada da altura (como str)
     invoke ReadConsole, inputHandle, addr altura_str, sizeof altura_str, addr console_count, NULL
 
-;;Remoção do '/n' em coord_x, coord_y, altura e largura
+;;Remoção do CR em coord_x, coord_y, altura e largura
     ;Tira CR da str nome_do_arquivo
-    mov esi, offset nome_arquivo_str ;Salva o ptr da string
-proximo_label_nome_arquivo_str:
-    mov al, [esi]   ;Move char da iter atual pra al (8-bit)
-    inc esi ;Move ptr + 1 (prox char)
-    cmp al, 13  ;Verifica se al tá com o CR
-    jne proximo_label_nome_arquivo_str  ;Ele so passa daqui se al estiver guardando CR
-    dec esi ;Aponta o ptr pro char anterior
-    xor al, al  ;Zera al
-    mov [esi], al   ;Troca o CR por 0
-
-    ;Zera esi e al pra usar de novo
-    xor esi, esi
-    xor al, al
+    push offset nome_arquivo_str
+    call RemoveCarriageReturn
 
     ;Tira CR da coord_x
-    mov esi, offset coord_x_str ;Salva o ptr da string
-proximo_label_coord_x_str:
-    mov al, [esi]
-    inc esi
-    cmp al, 13
-    jne proximo_label_coord_x_str
-    dec esi
-    xor al, al
-    mov [esi], al
-
-    xor esi, esi
-    xor al, al
+    push offset coord_x_str
+    call RemoveCarriageReturn
 
    ;Tira CR da coord_y
-    mov esi, offset coord_y_str
-proximo_label_coord_y_str:
-    mov al, [esi]
-    inc esi
-    cmp al, 13
-    jne proximo_label_coord_y_str
-    dec esi
-    xor al, al
-    mov [esi], al
-
-    xor esi, esi
-    xor al, al
+    push offset coord_y_str
+    call RemoveCarriageReturn
 
     ;Tira CR da largura
-    mov esi, offset largura_str
-proximo_label_largura_str:
-    mov al, [esi]
-    inc esi
-    cmp al, 13
-    jne proximo_label_largura_str
-    dec esi
-    xor al, al
-    mov [esi], al
-
-    xor esi, esi
-    xor al, al
+    push offset largura_str
+    call RemoveCarriageReturn
 
     ;Tira CR da altura
-    mov esi, offset altura_str
-proximo_label_altura_str:
-    mov al, [esi]
-    inc esi
-    cmp al, 13
-    jne proximo_label_altura_str
-    dec esi
-    xor al, al
-    mov [esi], al
-
-    xor esi, esi
-    xor al, al
+    push offset altura_str
+    call RemoveCarriageReturn
 
 ;;Conversões de coord_x, coord_y e largura para dword (4 bytes)
     ;Converte as strings em dwords (por meio de eax) e as armazena nas variáveis
