@@ -333,7 +333,7 @@ copy_img_line_label:
 ;;CensorLineBuffer function call here
     ;;Should only call this function if y_pos_counter is between y_pos and y_pos + altura-1
     ;;if(y_pos_counter < coord_y || y_pos_counter > (coord_y + (altura-1)){ não censurar essa linha }
-    ;First, save the decreased-by-one value of height on eax
+    ;First, save the to-be-decreased-by-one value of height on eax
     mov eax, altura_censura
 
     ;Decrease it by one (censor should got from coord_y up to height-1)
