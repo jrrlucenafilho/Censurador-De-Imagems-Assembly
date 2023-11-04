@@ -19,18 +19,20 @@ include \masm32\macros\macros.asm
     console_count dd 0  ;Guarda chars lidos/escritos na console
 
     ;Prompt strings
-    prompt_nome_arq db "Digite o nome do arquivo de entrada: ", 0
+    prompt_nome_arq_entrada db "Digite o nome do arquivo de entrada: ", 0
     prompt_coord_x db "Digite a coordenada x: ", 0
     prompt_coord_y db "Digite a coordenada y: ", 0
     prompt_largura db "Digite a largura da censura: ", 0
     prompt_altura db "Digite a altura da censura: ", 0
+    prompt_nome_arq_saida db "Digite um nome para o arquivo de saída: ", 0
 
     ;Strings a serem preenchidas
-    nome_arquivo_str db 50 dup(0)
+    nome_arquivo_entrada_str db 50 dup(0)
     coord_x_str db 50 dup(0)
     coord_y_str db 50 dup(0)
     largura_str db 50 dup(0)
     altura_str db 50 dup(0)
+    nome_arquivo_saida_str db 50 dup(0)
 
     ;Variáveis que guardarão os valores numéricos
     coord_x DWORD 0
@@ -56,9 +58,6 @@ include \masm32\macros\macros.asm
     ;Contador de quantos bytes efetivamente foram lidos e escritos (basically an EOF flag aq)
     effectively_read_bytes DWORD 0
     effectively_written_bytes DWORD 0
-
-    ;Nome do arq de saída
-    output_file_name db "imagem_censurada_output.bmp", 0
 
     ;Array que guardará os bytes de uma linha da imagem (tam max p/ imagens 4k)
     ;3 bytes/pixel multiplicados por 2160 pixels
@@ -188,7 +187,7 @@ next_to_be_cleaned_str_label:
     mov al, [esi]   ;Move char da iter atual pra al (8-bit)
     inc esi ;Move ptr + 1 (prox char)
     cmp al, 13  ;Verifica se al tá com o CR
-    jne next_to_be_cleaned_str_label  ;Ele so passa daqui se al estiver guardando CR
+    jne next_to_be_cleaned_str_label  ;Só passa daqui se al estiver guardando CR
     dec esi ;Aponta o ptr pro char anterior
     xor al, al  ;Zera al
     mov [esi], al   ;Troca o CR por 0
@@ -214,10 +213,10 @@ start:
     mov outputHandle, eax
 
     ;Escrever prompt do nome do arq
-    invoke StdOut, addr prompt_nome_arq
+    invoke StdOut, addr prompt_nome_arq_entrada
     
     ;Entrada do nome do arquivo
-    invoke ReadConsole, inputHandle, addr nome_arquivo_str, sizeof nome_arquivo_str, addr console_count, NULL
+    invoke ReadConsole, inputHandle, addr nome_arquivo_entrada_str, sizeof nome_arquivo_entrada_str, addr console_count, NULL
 
     ;Escrever prompt da coord x
     invoke StdOut, addr prompt_coord_x
@@ -243,8 +242,14 @@ start:
     ;Entrada da altura (como str)
     invoke ReadConsole, inputHandle, addr altura_str, sizeof altura_str, addr console_count, NULL
 
-    ;Tira CR da str nome_do_arquivo
-    push offset nome_arquivo_str
+    ;Escrever prompt do nome do arq de saída
+    invoke StdOut, addr prompt_nome_arq_saida
+    
+    ;Entrada do onome do arq de saída
+    invoke ReadConsole, inputHandle, addr nome_arquivo_saida_str, sizeof nome_arquivo_saida_str, addr console_count, NULL
+
+    ;Tira CR da str nome_arquivo_entrada_str
+    push offset nome_arquivo_entrada_str
     call RemoveCarriageReturn
 
     ;Tira CR da coord_x
@@ -261,6 +266,10 @@ start:
 
     ;Tira CR da altura
     push offset altura_str
+    call RemoveCarriageReturn
+
+    ;Tira CR da str nome_arquivo_saida_str
+    push offset nome_arquivo_saida_str
     call RemoveCarriageReturn
 
 ;;Conversões de coord_x, coord_y e largura para dword (4 bytes)
@@ -280,7 +289,7 @@ start:
 ;;;Manipulando arquivos;;;
     ;Leitura do header do arquivo source
     ;Abrindo o arquivo source (bmp file)
-    invoke CreateFile, addr nome_arquivo_str, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL
+    invoke CreateFile, addr nome_arquivo_entrada_str, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL
     mov input_file_handle, eax ;armazena o handle
 
     ;Ler 18 (14 + 4) bytes do header
@@ -294,7 +303,7 @@ start:
 
 ;;Escrita para o header do arquivo de output
     ;Criação do arquivo de output
-    invoke CreateFile, addr output_file_name, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL
+    invoke CreateFile, addr nome_arquivo_saida_str, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL
     mov output_file_handle, eax
 
     ;;Escrita do header do arquivo (52 bytes total)
