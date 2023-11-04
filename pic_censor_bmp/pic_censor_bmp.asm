@@ -185,11 +185,11 @@ RemoveCarriageReturn:
     push eax
 
     mov esi, DWORD PTR [ebp+8] ;Salva o ptr da string
-proximo_to_be_cleaned_str_label:
+next_to_be_cleaned_str_label:
     mov al, [esi]   ;Move char da iter atual pra al (8-bit)
     inc esi ;Move ptr + 1 (prox char)
     cmp al, 13  ;Verifica se al tá com o CR
-    jne proximo_to_be_cleaned_str_label  ;Ele so passa daqui se al estiver guardando CR
+    jne next_to_be_cleaned_str_label  ;Ele so passa daqui se al estiver guardando CR
     dec esi ;Aponta o ptr pro char anterior
     xor al, al  ;Zera al
     mov [esi], al   ;Troca o CR por 0
