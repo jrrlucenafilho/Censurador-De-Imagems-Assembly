@@ -17,7 +17,6 @@ include \masm32\macros\macros.asm
     inputHandle dd 0    ;Variavel para armazenar o handle de entrada
     outputHandle dd 0   ;Variavel para armazenar o handle de saida
     console_count dd 0  ;Variavel para armazenar caracteres lidos/escritos na console
-    tamanho_string dd 0     ;Variavel para armazenar tamanho de string terminada em 0
 
     ;Prompt strings
     prompt_nome_arq db "Digite o nome do arquivo de entrada: ", 0
@@ -177,7 +176,7 @@ RemoveCarriageReturn:
     ;DWORD PTR [ebp+8] = offset to_be_cleaned_str
 
     ;;Local vars:
-    ;DWORD PTR [ebp-4] = esi_initial_value
+    ;DWORD PTR [ebp-4] = esi_initial_value  ;;Preserving previosu reg values in order to follow the Callee Clean-up convention
     ;DWORD PTR [ebp-8] = eax_initial_value (for al)
 
     ;Storing esi's and eax's previous values
