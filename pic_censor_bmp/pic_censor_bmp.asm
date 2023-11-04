@@ -278,8 +278,7 @@ start:
     mov altura_censura, eax
 
 ;;;Manipulando arquivos;;;
-
-;;Leitura do header do arquivo source
+    ;Leitura do header do arquivo source
     ;Abrindo o arquivo source (bmp file)
     invoke CreateFile, addr nome_arquivo_str, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL
     mov input_file_handle, eax ;armazena o handle
