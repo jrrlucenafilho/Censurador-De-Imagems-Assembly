@@ -244,7 +244,6 @@ start:
     ;Entrada da altura (como str)
     invoke ReadConsole, inputHandle, addr altura_str, sizeof altura_str, addr console_count, NULL
 
-;;Remoção do CR em coord_x, coord_y, altura e largura
     ;Tira CR da str nome_do_arquivo
     push offset nome_arquivo_str
     call RemoveCarriageReturn
@@ -253,7 +252,7 @@ start:
     push offset coord_x_str
     call RemoveCarriageReturn
 
-   ;Tira CR da coord_y
+    ;Tira CR da coord_y
     push offset coord_y_str
     call RemoveCarriageReturn
 
