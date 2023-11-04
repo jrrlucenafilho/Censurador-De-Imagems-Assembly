@@ -331,7 +331,7 @@ copy_img_line_label:
     invoke ReadFile, input_file_handle, addr img_line_bytes_buffer, img_line_byte_num, addr effectively_read_bytes, NULL
 
 ;;CensorLineBuffer function call here
-    ;;Should only call this function if y_pos_counter is between y_pos and y_pos + altura
+    ;;Should only call this function if y_pos_counter is between y_pos and y_pos + altura-1
     ;;if(y_pos_counter < coord_y || y_pos_counter > (coord_y + (altura-1)){ não censurar essa linha }
     ;First, save the decreased-by-one value of height on eax
     mov eax, altura_censura
