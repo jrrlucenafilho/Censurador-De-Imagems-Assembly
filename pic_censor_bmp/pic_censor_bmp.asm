@@ -204,7 +204,7 @@ next_to_be_cleaned_str_label:
 
     mov esp, ebp
     pop ebp
-    ret 8
+    ret 4
 
 start:
 ;;Prompts de entrada
