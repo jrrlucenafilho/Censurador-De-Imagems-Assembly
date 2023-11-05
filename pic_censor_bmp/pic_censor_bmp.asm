@@ -89,7 +89,7 @@ CensorLineBuffer:
     ;Vars locais:
     ;[ebp-4] = buffer_painted_pixels_counter
     ;[ebp-8] = eax_initial_value   ;;These "reg_initial_value" will save the values of each reg before they were used in this function
-    ;[ebp-12] = ebx_initial_value  ;;Which means it just needs to preserve used regs' previous values
+    ;[ebp-12] = ebx_initial_value  ;;Because i want to preserve used regs' previous values
     ;[ebp-16] = ecx_initial_value
     ;[ebp-20] = edx_initial_value
 
@@ -163,7 +163,6 @@ paint_it_black_label:
     ret 12  ;Desempilha os 3 params (4 bytes * 3 params = 12 bytes)
 
 ;;RemoveCarriageReturn(addr string)
-;Tira CR da str recebida como param
 RemoveCarriageReturn:
     ;Prologue
     push ebp
@@ -359,7 +358,7 @@ copy_img_line_label:
     ;Skips censoring current line buffer in case y_pos_counter is higher than (coord_y + (altura_censura-1))
     jg line_should_skip_censoring_label
 
-    ;Pushing params and calling function
+    ;Pushing params and calling function in case neither jump is triggered
     push largura_censura
     push coord_x
     push offset img_line_bytes_buffer
@@ -369,7 +368,6 @@ line_should_skip_censoring_label:
     ;Escreve na img de output a linha que está no buffer até a (largura da imagem * 3)
     invoke WriteFile, output_file_handle, addr img_line_bytes_buffer, img_line_byte_num, addr effectively_written_bytes, NULL
 
-    ;+1 to y_pos_counter
     inc y_pos_counter
 
     ;Checa se chegou no EOF usando effectively_read_bytes != 0?
