@@ -1,3 +1,5 @@
+;Dupla: José Ricardo Rodrigues de Lucena Filho, Ana Vitória Maciel de Lima Pessoa
+
 .686
 .model flat, stdcall
 option casemap:none
@@ -71,7 +73,6 @@ include \masm32\macros\macros.asm
     y_pos_counter DWORD 0
 
 .code
-;;Censoring-line-buffer function
 ;;CensorLineBuffer(img_line_bytes_buffer, coord_x, largura_censura)
 CensorLineBuffer:
     ;Prologue
@@ -88,13 +89,12 @@ CensorLineBuffer:
     ;Vars locais:
     ;[ebp-4] = buffer_painted_pixels_counter
     ;[ebp-8] = eax_initial_value   ;;These "reg_initial_value" will save the values of each reg before they were used in this function
-    ;[ebp-12] = ebx_initial_value  ;;Since this is a windows program, and so should follow the Callee Clean-up convention
-    ;[ebp-16] = ecx_initial_value  ;;Which means it just needs to preserve used regs' previous values
+    ;[ebp-12] = ebx_initial_value  ;;Which means it just needs to preserve used regs' previous values
+    ;[ebp-16] = ecx_initial_value
     ;[ebp-20] = edx_initial_value
 
     ;Salva o valor inicial de eax na pilha
-    ;(Deixa um "buraco" na pilha pois tenho que usar o eax para salvar buffer_painted_pixels_counter como a primeira var local)
-    ;(Portanto, tenho que salvar eax antes de usá-lo, e fazer assim me permite deixar todos os "reg_initial_value"'s juntos no topo da pilha)
+    ;(Tenho que salvar eax antes de usá-lo, e fazer assim me permite deixar todos os "reg_initial_value"'s juntos no topo da pilha)
     mov DWORD PTR [ebp-8], eax
 
     ;Movendo buffer_painted_pixels_counter para a pilha como var local (grava zero mesmo, no início)
@@ -122,7 +122,7 @@ CensorLineBuffer:
     ;Then multiply ebx by 3 (1 pixel = 3 bytes)
     imul ebx, 3
 
-    ;Calculate the address of the desired first-to-be-censored byte in line buffer
+    ;Get the address of the desired first-to-be-censored byte in line buffer
     lea eax, img_line_bytes_buffer[ebx] 
     
     ;Now eax points to coord_x's pixel first byte, just need to paint it black until (coord_x + largura)
@@ -152,7 +152,7 @@ paint_it_black_label:
     ;If they're equal, then the correct width has been painted and the function is finished
 
     ;Epilogue
-    ;Popping os regs usados, para recuperarem seus valores anteriores ao seu uso na função (Callee-Cleanup convention)
+    ;Popping os regs usados, para recuperarem seus valores anteriores ao seu uso na função
     pop edx
     pop ecx
     pop ebx
@@ -175,8 +175,8 @@ RemoveCarriageReturn:
     ;[ebp+8] = offset to_be_cleaned_str
 
     ;;Local vars:
-    ;[ebp-4] = esi_initial_value  ;;Preserving previous reg values in order to follow the Callee Clean-up convention
-    ;[ebp-8] = eax_initial_value (for al)
+    ;[ebp-4] = esi_initial_value  ;;Preserving previous reg values
+    ;[ebp-8] = eax_initial_value (to preserve al)
 
     ;Storing esi's and eax's previous values
     push esi
@@ -286,7 +286,7 @@ start:
     invoke atodw, addr altura_str
     mov altura_censura, eax
 
-;;;Manipulando arquivos;;;
+;;Manipulando arquivos
     ;Leitura do header do arquivo source
     ;Abrindo o arquivo source (bmp file)
     invoke CreateFile, addr nome_arquivo_entrada_str, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL
@@ -377,7 +377,6 @@ line_should_skip_censoring_label:
     cmp effectively_read_bytes, 0
     jne copy_img_line_label
 
-    ;Close both file handles
     invoke CloseHandle, input_file_handle
     invoke CloseHandle, output_file_handle
 
